@@ -1,0 +1,1 @@
+apidoc -i D:\clients\digitalization\ApiV1\Web.Api\Controllers -o "D:\clients\digitalization\Consulting Digitalization\API\doc"

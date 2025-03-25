@@ -1,0 +1,13 @@
+﻿<?xml version="1.0"?>
+<doc>
+  <assembly>
+    <name>KDMApi</name>
+  </assembly>
+  <members>
+    <member name="M:KDMApi.Controllers.CoursesController.DeleteCourse(System.Int32)">
+      <summary>
+        Deletes a specific course.
+      </summary>
+    </member>
+  </members>
+</doc>
