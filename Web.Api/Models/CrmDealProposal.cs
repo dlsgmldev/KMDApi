@@ -20,7 +20,7 @@ namespace KDMApi.Models
         public bool IsActive { get; set; }
         public DateTime CreatedDate { get; set; }
         public int CreatedBy { get; set; }
-        public DateTime? LastUpdated { get; set; }
+        public DateTime LastUpdated { get; set; }
         public int LastUpdatedBy { get; set; }
         public bool IsDeleted { get; set; }
         public int DeletedBy { get; set; }

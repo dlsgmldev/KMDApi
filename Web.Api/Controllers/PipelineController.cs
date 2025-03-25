@@ -19,7 +19,6 @@ using System.Data.SqlClient;
 using System.Globalization;
 using Org.BouncyCastle.Asn1.X509;
 using System.Drawing.Imaging;
-using MailKit;
 
 /*
 SQL Update Db
@@ -161,7 +160,7 @@ namespace KDMApi.Controllers
                 };
                 _context.CrmDealTribes.Add(tribe);
 
-                if(request.ContactId != 0)
+                if (request.ContactId != 0)
                 {
                     CrmDealExternalMember member = new CrmDealExternalMember()
                     {
@@ -177,7 +176,7 @@ namespace KDMApi.Controllers
                     _context.CrmDealExternalMembers.Add(member);
                 }
 
-                if(request.UserIdRM != 0)
+                if (request.UserIdRM != 0)
                 {
                     CrmDealRole rmRole = GetDealRole("rm");
                     CrmDealInternalMember member = new CrmDealInternalMember()
@@ -197,7 +196,7 @@ namespace KDMApi.Controllers
                     _context.CrmDealInternalMembers.Add(member);
                 }
 
-                if(request.PicId != 0)
+                if (request.PicId != 0)
                 {
                     CrmDealRole picRole = GetDealRole("pic");
                     CrmDealInternalMember member = new CrmDealInternalMember()
@@ -506,7 +505,7 @@ namespace KDMApi.Controllers
                 }
             }
 
-            if(request.ContactId != 0)
+            if (request.ContactId != 0)
             {
                 CrmDealExternalMember member = curContacts.FirstOrDefault(a => a.Id == request.ContactId);
                 if (member == null || member.Id == 0)
@@ -530,7 +529,7 @@ namespace KDMApi.Controllers
 
             foreach (int id in request.MemberIds)
             {
-                if(id != 0)
+                if (id != 0)
                 {
                     CrmDealExternalMember member2 = curContacts.FirstOrDefault(a => a.Id == id);
 
@@ -807,9 +806,9 @@ namespace KDMApi.Controllers
             }
             string whereSql = string.Join(" ", wheres);
             string sql = string.Join(" ", new[] { selectSql, fromSql, joinSql0, joinSql0b, joinSql1, joinSql2, joinSql2b, joinSql3, whereSql, orderBy });
-            
+
             List<PipelineItem> items = await _context.PipelineItems.FromSql(sql).ToListAsync<PipelineItem>();
-            foreach(PipelineItem item in items)
+            foreach (PipelineItem item in items)
             {
                 item.Rms = await GetInternalMembers(item.DealId, role.Id);
                 item.Access = GetAccess(item.Rms);
@@ -954,11 +953,11 @@ namespace KDMApi.Controllers
             List<PipelineItem> items = new List<PipelineItem>();
             items = await _context.PipelineItems.FromSql(sql).ToListAsync<PipelineItem>();
 
-            foreach(PipelineItem item in items)
+            foreach (PipelineItem item in items)
             {
                 item.Rms = await GetInternalMembers(item.DealId, role.Id);
                 item.Access = GetAccess(item.Rms);
-                if(item.ProposalId != 0)
+                if (item.ProposalId != 0)
                 {
                     item.InvoicePeriod = _context.CrmDealProposalInvoices.Where(a => a.ProposalId == item.ProposalId && !a.IsDeleted).Count();
                 }
@@ -1629,7 +1628,7 @@ namespace KDMApi.Controllers
             string joinSql3 = "JOIN dbo.CrmClients AS client ON deal.ClientId = client.Id";
             string joinSql3b = "JOIN dbo.CrmDealTribes AS dealTribe ON dealTribe.DealId = deal.Id ";
 
-            if(tobe == 0)
+            if (tobe == 0)
             {
                 joinSql3b = "JOIN dbo.CrmDealTribeInvoices AS dealTribe ON dealTribe.InvoiceId = invoice.Id ";
             }
@@ -1682,14 +1681,14 @@ namespace KDMApi.Controllers
             string joinSql6 = "";
             if (!rmFilter.Equals("0"))
             {
-                if(tobe == 1)
+                if (tobe == 1)
                 {
                     CrmDealRole role = GetDealRole("rm");
                     joinSql6 = "JOIN dbo.CrmDealInternalMembers AS member ON deal.Id = member.DealId";
                     wheres.Add(string.Join(" ", new[] { "AND", "member.RoleId", "=", role.Id.ToString() }));
                     wheres.Add(CreateWhereClause(rmFilter, "AND ", "member.UserId", "OR"));
                 }
-                else 
+                else
                 {
                     joinSql6 = "JOIN dbo.CrmDealUserInvoices AS member ON invoice.Id = member.InvoiceId";
                     wheres.Add(CreateWhereClause(rmFilter, "AND ", "member.UserId", "OR"));
@@ -1789,7 +1788,7 @@ namespace KDMApi.Controllers
                 int curMonth = DateTime.Today.Month;
                 int curYear = DateTime.Today.Year;
 
-                if(lastmonth != 0 && lastyear != 0)
+                if (lastmonth != 0 && lastyear != 0)
                 {
                     curMonth = lastmonth;
                     curYear = lastyear;
@@ -1828,13 +1827,13 @@ namespace KDMApi.Controllers
 
                 foreach (InvoiceItem item in items)
                 {
-                    if(item.Month <= curMonth && item.Year == curYear)
+                    if (item.Month <= curMonth && item.Year == curYear)
                     {
                         item.Stage = 1;
                     }
                     else
                     {
-                        if(item.Year == curYear)
+                        if (item.Year == curYear)
                         {
                             item.Stage = item.Month - curMonth + 1;
                         }
@@ -1870,7 +1869,7 @@ namespace KDMApi.Controllers
 
                     GenericInfo info = GetInvoiceContact(item.InvoiceId);
 
-                    if(info != null)
+                    if (info != null)
                     {
                         itemResponse.Contact.Id = info.Id;
                         itemResponse.Contact.Text = info.Text;
@@ -2547,13 +2546,13 @@ namespace KDMApi.Controllers
                             prop.RootFolder
                         };
             var obj = query.FirstOrDefault();
-            if(obj != null)
+            if (obj != null)
             {
                 string fullpath = Path.Combine(new[] { obj.RootFolder, "deal", obj.DealId.ToString(), obj.Filename });
                 if (System.IO.File.Exists(fullpath))
                 {
                     KmFile rootFolder = _context.KmFiles.Where(a => a.ParentId == 0 && a.Onegml && a.IsFolder && !a.IsDeleted && a.Name.Equals("Pre-sales")).FirstOrDefault();
-                    if(rootFolder != null)
+                    if (rootFolder != null)
                     {
                         KmFile tribeFolder = _context.KmFiles.Where(a => a.ParentId == rootFolder.Id && a.IsFolder && !a.IsDeleted && a.Name.Equals(obj.Shortname.ToUpper())).FirstOrDefault();
                         if (tribeFolder == null)
@@ -2836,17 +2835,17 @@ namespace KDMApi.Controllers
                 {
                     await AddDealHistory("tobedate", deal.Id, invoice.InvoiceDate.ToString(), request.InvoiceDate.ToString(), now, request.UserId, now, request.UserId, "Changing to be invoiced date from ", invoice.InvoiceDate.ToString(), request.InvoiceDate.ToString(), 0, 0, 0, request.Remarks);
                 }
-/*
-                if(invoice.Amount != request.Amount)
-                {
-                    await AddDealHistory("tobeamount", deal.Id, invoice.Amount.ToString(), request.Amount.ToString(), now, request.UserId, now, request.UserId, "Changing invoice value for invoice date ", request.InvoiceDate.ToString(), "", 0, 0, 0, request.Remarks, request.Amount);
-                }
-                */
-                if(invoice.Remarks == null)
+                /*
+                                if(invoice.Amount != request.Amount)
+                                {
+                                    await AddDealHistory("tobeamount", deal.Id, invoice.Amount.ToString(), request.Amount.ToString(), now, request.UserId, now, request.UserId, "Changing invoice value for invoice date ", request.InvoiceDate.ToString(), "", 0, 0, 0, request.Remarks, request.Amount);
+                                }
+                                */
+                if (invoice.Remarks == null)
                 {
                     await UpdateDealHistoryRemarks("tobe", deal.Id, invoice.Id, request.Remarks);
                 }
-                else if(!invoice.Remarks.Equals(request.Remarks))
+                else if (!invoice.Remarks.Equals(request.Remarks))
                 {
                     await UpdateDealHistoryRemarks("tobe", deal.Id, invoice.Id, request.Remarks);
                 }
@@ -2918,7 +2917,7 @@ namespace KDMApi.Controllers
             }
 
             CrmDeal deal = _context.CrmDeals.Find(invoice.DealId);
-            if(deal == null)
+            if (deal == null)
             {
                 return NotFound();
             }
@@ -3050,7 +3049,7 @@ namespace KDMApi.Controllers
          */
         [Authorize(Policy = "ApiUser")]
         [HttpPost("pricing/upload")]
-        public async Task<ActionResult<PostPricingResponse>> PostPricingUploadFile([FromForm]PostPricingUploadFile request)
+        public async Task<ActionResult<PostPricingResponse>> PostPricingUploadFile([FromForm] PostPricingUploadFile request)
         {
             if (!DealExists(request.DealId))
             {
@@ -3503,7 +3502,7 @@ namespace KDMApi.Controllers
 
             try
             {
-                if(request.Tribes != null)
+                if (request.Tribes != null)
                 {
                     AddVisitTribes(request.Tribes, visit.Id);
                 }
@@ -3849,14 +3848,14 @@ namespace KDMApi.Controllers
                 cons.Add(new PercentInfo()
                 {
                     UserId = n,
-                    Percent = 0.0d, 
+                    Percent = 0.0d,
                     UsePercent = false,
                     Nominal = 0
                 });
             }
 
             List<PercentInfo> pics = new List<PercentInfo>();
-            if(request.PicId != 0)
+            if (request.PicId != 0)
             {
                 pics.Add(new PercentInfo()
                 {
@@ -3887,7 +3886,7 @@ namespace KDMApi.Controllers
                 response.Errors.Add(e2);
             }
 
-            if(pics.Count != 0)
+            if (pics.Count != 0)
             {
                 Error e3 = await AddDealOwner(pics, request.DealId, "pic", now, request.UseerId);
                 if (!e3.Code.Equals("ok"))
@@ -4475,10 +4474,11 @@ namespace KDMApi.Controllers
             }
 
             List<CrmDealPNL> pnls = await _context.CrmDealPNLs.Where(a => a.DealId == dealId && a.IsActive && !a.IsDeleted).ToListAsync();
-            foreach(CrmDealPNL pnl in pnls) {
+            foreach (CrmDealPNL pnl in pnls)
+            {
                 if (pnl != null && pnl.Id > 0)
                 {
-                    if(pnl.DocumentType == 1)
+                    if (pnl.DocumentType == 1)
                     {
                         detail.pricing = GetPricingInfo(pnl.Id, pnl.DocumentType);
                     }
@@ -4498,7 +4498,7 @@ namespace KDMApi.Controllers
                     orderby history.ActionDate
                     select new CrmDealHistory()
                     {
-                        CurData = history.CurData, 
+                        CurData = history.CurData,
                         PrevData = history.PrevData,
                         ActionDate = history.ActionDate
                     };
@@ -4642,7 +4642,7 @@ namespace KDMApi.Controllers
             }
 
             CrmDealInvoice invoice = _context.CrmDealInvoices.Find(request.Id);
-            if(invoice == null)
+            if (invoice == null)
             {
                 return NotFound(new { error = "To be invoiced not found. Please check id" });
             }
@@ -5150,9 +5150,9 @@ namespace KDMApi.Controllers
                             period.Month
                         };
             var objs = await query.OrderBy(a => a.Month).ToListAsync();
-            foreach(var obj in objs)
+            foreach (var obj in objs)
             {
-                if(!response.items.Where(a => a.Year == obj.Year && a.Month == obj.Month).Any())
+                if (!response.items.Where(a => a.Year == obj.Year && a.Month == obj.Month).Any())
                 {
                     TargetItem newItem = new TargetItem()
                     {
@@ -5163,9 +5163,9 @@ namespace KDMApi.Controllers
                     response.items.Add(newItem);
                 }
                 TargetItem item = response.items.Where(a => a.Year == obj.Year && a.Month == obj.Month).FirstOrDefault();
-                if(item != null)
+                if (item != null)
                 {
-                    if(item.Targets != null)
+                    if (item.Targets != null)
                     {
                         item.Targets.Add(new GenericAmount()
                         {
@@ -5366,7 +5366,7 @@ namespace KDMApi.Controllers
                         foreach (GenericAmount t in item.Targets)
                         {
                             CrmDealTarget curTarget = _context.CrmDealTargets.Where(a => a.KpiId == t.Id && a.Type == request.Type && a.LinkedId == request.Id && a.PeriodId == periodId).FirstOrDefault();
-                            if(curTarget == null)
+                            if (curTarget == null)
                             {
                                 CrmDealTarget target = new CrmDealTarget()
                                 {
@@ -5475,7 +5475,7 @@ namespace KDMApi.Controllers
             h3.Amount = d3.Amount1 + totalProjection;
             h3.Percent = d3.Amount2 == 0 ? 0 : Convert.ToInt32(Math.Round(Convert.ToSingle(Convert.ToSingle(d3.Amount1) / Convert.ToSingle(d3.Amount2) - 1.00) * 100));
 
-            if(curMonth == 1)
+            if (curMonth == 1)
             {
                 h3.Note = string.Join(" ", new[] { "Compare to", String.Format("{0:MMM yyyy}", new DateTime(curYear - 1, curMonth, 1)) });
             }
@@ -5484,7 +5484,7 @@ namespace KDMApi.Controllers
                 h3.Note = string.Join(" ", new[] { "Compare to Jan -", String.Format("{0:MMM yyyy}", new DateTime(curYear - 1, curMonth, 1)) });
             }
 
-            
+
             response.AddRange(new[] { h1, h2, h3 });
             return response;
         }
@@ -5535,7 +5535,7 @@ namespace KDMApi.Controllers
             response.Header.Type = type;
             response.Header.Headers.AddRange(new[] { "To be invoiced", "Invoiced", "Total" });
 
-            if(type.Trim().Equals("tribe"))
+            if (type.Trim().Equals("tribe"))
             {
                 response.Items = await GetTribeProjectedInvoice("=", month, year);
             }
@@ -5606,7 +5606,7 @@ namespace KDMApi.Controllers
             response.Header.Headers.AddRange(new[] { year1.ToString(), year2.ToString(), year3.ToString() });
 
             string sql = "";
-            if(type.Trim().Equals("tribe"))
+            if (type.Trim().Equals("tribe"))
             {
                 sql = string.Join(" ", new[] {
                     "select ISNULL(a.Id, ISNULL(b.Id, c.Id)) as Id, ISNULL(a.Tribe, ISNULL(b.Tribe, c.Tribe)) as Text, ISNULL(a.Amount, 0) as Amount1, ISNULL(b.Amount, 0) as Amount2, ISNULL(c.Amount, 0) as Amount3 FROM (",
@@ -5618,7 +5618,7 @@ namespace KDMApi.Controllers
                     ") as c on c.id = b.Id"
                 });
             }
-            else if(type.Trim().Equals("segment"))
+            else if (type.Trim().Equals("segment"))
             {
                 sql = string.Join(" ", new[] {
                     "select ISNULL(a.Id, ISNULL(b.Id, c.Id)) as Id, ISNULL(a.Segment, ISNULL(b.Segment, c.Segment)) as Text, ISNULL(a.Amount, 0) as Amount1, ISNULL(b.Amount, 0) as Amount2, ISNULL(c.Amount, 0) as Amount3 FROM (",
@@ -5630,7 +5630,7 @@ namespace KDMApi.Controllers
                     ") as c on c.id = b.Id"
                 });
             }
-            else if(type.Trim().Equals("branch"))
+            else if (type.Trim().Equals("branch"))
             {
                 sql = string.Join(" ", new[] {
                     "select ISNULL(a.Id, ISNULL(b.Id, c.Id)) as Id, ISNULL(a.Branch, ISNULL(b.Branch, c.Branch)) as Text, ISNULL(a.Amount, 0) as Amount1, ISNULL(b.Amount, 0) as Amount2, ISNULL(c.Amount, 0) as Amount3 FROM (",
@@ -5642,7 +5642,7 @@ namespace KDMApi.Controllers
                     ") as c on c.id = b.Id"
                 });
             }
-            else if(type.Trim().Equals("rm"))
+            else if (type.Trim().Equals("rm"))
             {
                 sql = string.Join(" ", new[] {
                     "select z.Id, z.Text, sum(z.Amount1) as Amount1, sum(z.Amount2) as Amount2, sum(z.Amount3) as Amount3 from (",
@@ -5661,11 +5661,11 @@ namespace KDMApi.Controllers
             {
                 SummaryTypeReport projected = await GetProjectedInvoice(type, toMonth, year3);
                 response.Items = await _context.SummaryReportRows.FromSql(sql).ToListAsync();
-                
-                foreach(SummaryReportRow row in projected.Items)
+
+                foreach (SummaryReportRow row in projected.Items)
                 {
                     SummaryReportRow invoiceRow = response.Items.Where(a => a.Text.Equals(row.Text)).FirstOrDefault();
-                    if(invoiceRow == null)
+                    if (invoiceRow == null)
                     {
                         response.Items.Add(row);
                     }
@@ -5803,10 +5803,10 @@ namespace KDMApi.Controllers
          * ]
          */
         [Authorize(Policy = "ApiUser")]
-        [HttpGet("report/chart/{type}/{id}/{fromMonth}/{toMonth}/{year}")] 
+        [HttpGet("report/chart/{type}/{id}/{fromMonth}/{toMonth}/{year}")]
         public async Task<ActionResult<List<ChartData>>> GetChartReport(string type, int id, int fromMonth, int toMonth, int year)
         {
-            
+
             var query = from kpi in _context.CrmKpis
                         where !kpi.IsDeleted
                         select new GenericInfo()
@@ -5820,24 +5820,24 @@ namespace KDMApi.Controllers
 
             List<ChartData> response = new List<ChartData>();
 
-            foreach(GenericInfo kpi in kpis)
+            foreach (GenericInfo kpi in kpis)
             {
                 ChartData data = await GetChartData(type, id, kpi, fromMonth, toMonth, year);
                 if (data.Series == null) return BadRequest();
-                foreach(ChartSeriesItem item in data.Series)
+                foreach (ChartSeriesItem item in data.Series)
                 {
                     if (year == 2020 && fromMonth < 6 && kpi.Id < 4)
                     {
                         var q = from actual in _context.CrmDealActualHistories
-                                    join per in _context.CrmPeriods
-                                    on actual.PeriodId equals per.Id
-                                    where actual.Type.Equals(type) && per.Month == item.Month && per.Year == year && actual.KpiId == kpi.Id && actual.LinkedId == id && actual.IsDeleted == false
-                                    select new { Actual = actual.Actual };
+                                join per in _context.CrmPeriods
+                                on actual.PeriodId equals per.Id
+                                where actual.Type.Equals(type) && per.Month == item.Month && per.Year == year && actual.KpiId == kpi.Id && actual.LinkedId == id && actual.IsDeleted == false
+                                select new { Actual = actual.Actual };
                         var o = q.FirstOrDefault();
-                        if(o != null)
+                        if (o != null)
                         {
                             item.Actual += o.Actual;
-                            if(item.Target != 0)
+                            if (item.Target != 0)
                             {
                                 item.Achievement = Convert.ToInt32(Math.Round(Convert.ToSingle(Convert.ToSingle(item.Actual) / Convert.ToSingle(item.Target)) * 100));
                             }
@@ -6004,7 +6004,7 @@ namespace KDMApi.Controllers
          * }
          */
         [Authorize(Policy = "ApiUser")]
-        [HttpGet("export/chart/{type}/{id}/{fromMonth}/{toMonth}/{year}")] 
+        [HttpGet("export/chart/{type}/{id}/{fromMonth}/{toMonth}/{year}")]
         public async Task<ActionResult<ChartDataExport>> GetExportChartData(string type, int id, int fromMonth, int toMonth, int year)
         {
             ChartDataExport response = new ChartDataExport();
@@ -6059,7 +6059,8 @@ namespace KDMApi.Controllers
                                 item.Amount += visit.Visit;
                             }
                         }
-                        else { 
+                        else
+                        {
                             SegmentSalesCallSummary item = response.Sheet2.Items.Where(a => a.Segment.Equals("Others") && a.Month == fm).FirstOrDefault();
                             if (item != null)
                             {
@@ -6191,6 +6192,176 @@ namespace KDMApi.Controllers
             }
             return response;
         }
+
+        /**
+         * @api {get} /Pipeline/team/{role}/{userId}/{fromDate}/{toDate}/{tribeFilter} GET individual summary by date
+         * @apiVersion 1.0.0
+         * @apiName GetTeamReportByDate
+         * @apiGroup Pipeline
+         * @apiPermission ApiUser
+         * @apiParam {String} role      "mentor" atau "leader" atau "admin"
+         * @apiParam {String} tribeFilter  Comma-delimited string dari tribeIds, atau 0 kalau tidak menggunakan filter.
+         * 
+         * @apiSuccessExample Success-Response:
+         * [
+         *     {
+         *         "title": "Total No Proposals in 2020",
+         *         "amount": 21,
+         *         "percent": 0,
+         *         "note": "Compare to Jan-Jul 2019"
+         *     },
+         *     {
+         *         "title": "Total Sales Visits in 2020",
+         *         "amount": 7,
+         *         "percent": 0,
+         *         "note": "Compare to Jan-Jul 2019"
+         *     },
+         *     {
+         *         "title": "Total invoice in Jul 2020",
+         *         "amount": 86809416,
+         *         "percent": 0,
+         *         "note": "Compare to Jul 2019"
+         *     },
+         *     {
+         *         "title": "Total invoice in 2020",
+         *         "amount": 336700232,
+         *         "percent": 0,
+         *         "note": "Compare to Jan-Jul 2019"
+         *     }
+         * ]
+         */
+        [Authorize(Policy = "ApiUser")]
+        [HttpGet("team/{role}/{userId}/{fromDate}/{toDate}/{tribeFilter}")]
+        public async Task<ActionResult<TeamAchievementByDate>> GetTeamReportByDate(string role, int userId, string fromDate, string toDate, string tribeFilter)
+        {
+            DateTime fr = DateTime.ParseExact(fromDate,
+                              "yyyyMMdd",
+                               CultureInfo.InvariantCulture);
+            DateTime to = DateTime.ParseExact(toDate,
+                              "yyyyMMdd",
+                              CultureInfo.InvariantCulture).AddDays(1);      // Add to next day mid night;
+
+
+            List<int> tribeIds = new List<int>();
+            if (!tribeFilter.Trim().Equals("0"))
+            {
+                foreach (string s in tribeFilter.Trim().Split(","))
+                {
+                    try
+                    {
+                        int n = Convert.ToInt32(s);
+                        tribeIds.Add(n);
+                    }
+                    catch
+                    {
+                        return BadRequest(new { error = "Error in converting tribe filters to integer." });
+                    }
+                }
+            }
+
+            string nm = GetTeamName(role, userId);
+
+            TeamAchievementByDate achievement = new TeamAchievementByDate();
+            achievement.UserId = userId;
+            achievement.TeamName = string.IsNullOrEmpty(nm) ? "" : nm;
+            achievement.Items = new List<TeamAchievementItemByDate>();
+
+            if (string.IsNullOrEmpty(nm)) return achievement;
+
+
+            List<GenericURL> members = await GetTeamMemberUserIds(role, userId);
+
+            List<string> roles = new List<string>();
+            roles.Add("rm");
+
+            foreach (GenericURL member in members)
+            {
+                GenericInfo status = DoGetTargetStatus(fr.Year, member.Id);
+
+                TeamAchievementItemByDate item = new TeamAchievementItemByDate();
+                item.User = new GenericInfo();
+                item.User.Id = member.Id;
+                item.User.Text = member.Text;
+                item.Authority = member.URL;
+
+                // Update 2025-03-14
+                // IndividualExportProposalItemResponse r = await _crmReportService.GetIndividualExportProposalItems(roles, item.User.Id, fromMonth, toMonth, year, 0, 0, "*");
+                IndividualExportProposalItemResponse r = await _crmReportService.GetIndividualExportProposalItemsByDate(roles, item.User.Id, fr, to, 0, 0, "*");
+                // End Update
+
+                int nproposal = 0;
+                long proposalValue = 0;
+                foreach (IndividualExportProposalItem i in r.Items)
+                {
+                    if (tribeIds.Count == 0)
+                    {
+                        nproposal++;
+                        proposalValue += i.ProposalValue;
+                    }
+                    else
+                    {
+                        var q = from proposal in _context.CrmDealProposals
+                                join deal in _context.CrmDeals on proposal.DealId equals deal.Id
+                                join dealTribe in _context.CrmDealTribes on deal.Id equals dealTribe.DealId
+                                where proposal.Id == i.ProposalId && !deal.IsDeleted && !dealTribe.IsDeleted && tribeIds.Contains(dealTribe.TribeId)
+                                select proposal.Id;
+                        if (q.Count() > 0)
+                        {
+                            nproposal++;
+                            proposalValue += i.ProposalValue;
+                        }
+                    }
+                }
+
+                // Update 2025-03-14
+                // IndividualExportVisit visits = await _crmReportService.GetListActualVisitsByUserId(member.Id, fromMonth, toMonth, year, 0, 0, "*");
+                IndividualExportVisit visits = await _crmReportService.GetListActualVisitsByUserIdByDate(member.Id, fr, to, 0, 0, "*");
+                // End update
+
+                int visitTotal = 0;
+                if (tribeIds.Count() == 0)
+                {
+                    visitTotal = visits.Items.Count();
+                }
+                else
+                {
+                    foreach (IndividualExportVisitItem visit in visits.Items)
+                    {
+                        var q = from vt in _context.CrmDealVisitTribes
+                                where vt.VisitId == visit.VisitId && tribeIds.Contains(vt.TribeId)
+                                select vt.Id;
+                        if (q.Count() > 0) visitTotal++;
+                    }
+                }
+
+                item.NProposals = nproposal; // GetIndividualSummaryNProposal(member.Id, fromMonth, toMonth, year, tribeIds);
+                item.Visits = visitTotal; // GetIndividualSummaryVisit(member.Id, fromMonth, toMonth, year, tribeIds);
+                item.ProposalValue = proposalValue; // await GetIndividualSummaryProposalValue(member.Id, fromMonth, toMonth, year, tribeIds);
+
+                var q1 = from rm in _context.CrmRelManagers
+                         join segment in _context.CrmSegments on rm.SegmentId equals segment.Id
+                         where rm.UserId == item.User.Id && !rm.IsDeleted && rm.isActive
+                         select new GenericInfo()
+                         {
+                             Id = segment.Id,
+                             Text = segment.Segment
+                         };
+                item.Segment = q1.FirstOrDefault();
+
+                // Update 2025-03-14
+                // item.Sales = await _crmReportService.GetActualSalesByUserIdFilterTribe(member.Id, fromMonth, toMonth, year, tribeIds); // GetIndividualSummarySalesOnePeriod(member.Id, fromMonth, toMonth, year);
+                item.Sales = await _crmReportService.GetActualSalesByUserIdFilterTribeByDate(member.Id, fr, to, tribeIds); // GetIndividualSummarySalesOnePeriod(member.Id, fromMonth, toMonth, year);
+                item.Status = status.Text;
+                item.FromDate = fr;
+                item.ToDate = to.AddDays(-1);
+                achievement.Items.Add(item);
+            }
+
+            return achievement;
+        }
+
+
+
         /**
          * @api {get} /Pipeline/team/{role}/{userId}/{fromMonth}/{toMonth}/{year}/{tribeFilter} GET individual summary
          * @apiVersion 1.0.0
@@ -6233,9 +6404,9 @@ namespace KDMApi.Controllers
         public async Task<ActionResult<TeamAchievement>> GetTeamReport(string role, int userId, int fromMonth, int toMonth, int year, string tribeFilter)
         {
             List<int> tribeIds = new List<int>();
-            if(!tribeFilter.Trim().Equals("0"))
+            if (!tribeFilter.Trim().Equals("0"))
             {
-                foreach(string s in tribeFilter.Trim().Split(","))
+                foreach (string s in tribeFilter.Trim().Split(","))
                 {
                     try
                     {
@@ -6277,9 +6448,9 @@ namespace KDMApi.Controllers
                 IndividualExportProposalItemResponse r = await _crmReportService.GetIndividualExportProposalItems(roles, item.User.Id, fromMonth, toMonth, year, 0, 0, "*");
                 int nproposal = 0;
                 long proposalValue = 0;
-                foreach(IndividualExportProposalItem i in r.Items)
+                foreach (IndividualExportProposalItem i in r.Items)
                 {
-                    if(tribeIds.Count == 0)
+                    if (tribeIds.Count == 0)
                     {
                         nproposal++;
                         proposalValue += i.ProposalValue;
@@ -6291,7 +6462,7 @@ namespace KDMApi.Controllers
                                 join dealTribe in _context.CrmDealTribes on deal.Id equals dealTribe.DealId
                                 where proposal.Id == i.ProposalId && !deal.IsDeleted && !dealTribe.IsDeleted && tribeIds.Contains(dealTribe.TribeId)
                                 select proposal.Id;
-                        if(q.Count() > 0)
+                        if (q.Count() > 0)
                         {
                             nproposal++;
                             proposalValue += i.ProposalValue;
@@ -6301,7 +6472,7 @@ namespace KDMApi.Controllers
 
                 IndividualExportVisit visits = await _crmReportService.GetListActualVisitsByUserId(member.Id, fromMonth, toMonth, year, 0, 0, "*");
                 int visitTotal = 0;
-                if(tribeIds.Count() == 0)
+                if (tribeIds.Count() == 0)
                 {
                     visitTotal = visits.Items.Count();
                 }
@@ -6321,13 +6492,13 @@ namespace KDMApi.Controllers
                 item.ProposalValue = proposalValue; // await GetIndividualSummaryProposalValue(member.Id, fromMonth, toMonth, year, tribeIds);
 
                 var q1 = from rm in _context.CrmRelManagers
-                        join segment in _context.CrmSegments on rm.SegmentId equals segment.Id
-                        where rm.UserId == item.User.Id && !rm.IsDeleted && rm.isActive
-                        select new GenericInfo()
-                        {
-                            Id = segment.Id,
-                            Text = segment.Segment
-                        };
+                         join segment in _context.CrmSegments on rm.SegmentId equals segment.Id
+                         where rm.UserId == item.User.Id && !rm.IsDeleted && rm.isActive
+                         select new GenericInfo()
+                         {
+                             Id = segment.Id,
+                             Text = segment.Segment
+                         };
                 item.Segment = q1.FirstOrDefault();
 
 
@@ -6383,7 +6554,7 @@ namespace KDMApi.Controllers
                 if (leader == null) return "";
                 return leader.TeamName;
             }
-            else if(role.Trim().Equals("admin"))
+            else if (role.Trim().Equals("admin"))
             {
                 return "All Team Members";
             }
@@ -6397,63 +6568,35 @@ namespace KDMApi.Controllers
             if (role.Trim().Equals("admin"))
             {
                 var queryAdmin = from r in _context.CrmRelManagers
-                                  join u in _context.Users on r.UserId equals u.ID
-                                  where r.isActive && !r.IsDeleted && r.IsTeamLeader
-                                  select new GenericURL()
-                                  {
-                                      Id = u.ID,
-                                      Text = u.FirstName,
-                                      URL = "Leader",
-                                      Time = DateTime.Now
-                                  };
-                list.AddRange(await queryAdmin.ToListAsync());
-
-                var queryAdmin2 = from r in _context.CrmRelManagers
                                  join u in _context.Users on r.UserId equals u.ID
-                                 where r.isActive && !r.IsDeleted && !r.IsTeamLeader
+                                 where r.isActive && !r.IsDeleted && r.IsTeamLeader
                                  select new GenericURL()
                                  {
                                      Id = u.ID,
                                      Text = u.FirstName,
-                                     URL = "Member",
+                                     URL = "Leader",
                                      Time = DateTime.Now
                                  };
+                list.AddRange(await queryAdmin.ToListAsync());
+
+                var queryAdmin2 = from r in _context.CrmRelManagers
+                                  join u in _context.Users on r.UserId equals u.ID
+                                  where r.isActive && !r.IsDeleted && !r.IsTeamLeader
+                                  select new GenericURL()
+                                  {
+                                      Id = u.ID,
+                                      Text = u.FirstName,
+                                      URL = "Member",
+                                      Time = DateTime.Now
+                                  };
                 list.AddRange(await queryAdmin2.ToListAsync());
 
             }
             else if (role.Trim().Equals("leader"))
             {
                 var queryLeader = from r in _context.CrmRelManagers
-                                   join u in _context.Users on r.UserId equals u.ID
-                                   where r.UserId == userId && r.isActive && !r.IsDeleted && r.IsTeamLeader
-                                   select new GenericURL()
-                                   {
-                                       Id = u.ID,
-                                       Text = u.FirstName,
-                                       URL = "Leader",
-                                       Time = DateTime.Now
-                                   };
-                GenericURL leader = queryLeader.FirstOrDefault();
-                if (leader == null) return list;
-                list.Add(leader);
-
-                var queryMembers = from r in _context.CrmRelManagers
-                            join u in _context.Users on r.UserId equals u.ID
-                            where r.LeaderId == leader.Id && r.isActive && !r.IsDeleted
-                            select new GenericURL()
-                            {
-                                Id = u.ID,
-                                Text = u.FirstName,
-                                URL = "Member",
-                                Time = DateTime.Now
-                            };
-                list.AddRange(await queryMembers.ToListAsync());
-            }
-            else if(role.Trim().Equals("mentor"))
-            {
-                var queryLeader = from r in _context.CrmRelManagers
                                   join u in _context.Users on r.UserId equals u.ID
-                                  where r.LeaderId == userId && r.isActive && !r.IsDeleted && r.IsTeamLeader
+                                  where r.UserId == userId && r.isActive && !r.IsDeleted && r.IsTeamLeader
                                   select new GenericURL()
                                   {
                                       Id = u.ID,
@@ -6476,6 +6619,38 @@ namespace KDMApi.Controllers
                                        Time = DateTime.Now
                                    };
                 list.AddRange(await queryMembers.ToListAsync());
+            }
+            else if (role.Trim().Equals("mentor"))
+            {
+                var queryLeader = from r in _context.CrmRelManagers
+                                  join u in _context.Users on r.UserId equals u.ID
+                                  where r.LeaderId == userId && r.isActive && !r.IsDeleted && r.IsTeamLeader
+                                  select new GenericURL()
+                                  {
+                                      Id = u.ID,
+                                      Text = u.FirstName,
+                                      URL = "Leader",
+                                      Time = DateTime.Now
+                                  };
+                List<GenericURL> leaders = queryLeader.ToList();
+                if (leaders == null) return list;
+                foreach (GenericURL leader in leaders)
+                {
+                    list.Add(leader);
+
+                    var queryMembers = from r in _context.CrmRelManagers
+                                       join u in _context.Users on r.UserId equals u.ID
+                                       where r.LeaderId == leader.Id && r.isActive && !r.IsDeleted
+                                       select new GenericURL()
+                                       {
+                                           Id = u.ID,
+                                           Text = u.FirstName,
+                                           URL = "Member",
+                                           Time = DateTime.Now
+                                       };
+                    list.AddRange(await queryMembers.ToListAsync());
+
+                }
             }
             return list;
         }
@@ -6760,7 +6935,7 @@ namespace KDMApi.Controllers
             IndividualReportVisit response = new IndividualReportVisit();
             response.Info = new PaginationInfo(page, perPage, total);
             response.Items = new List<IndividualReportVisitItem>();
-            foreach(IndividualExportVisitItem item in visit1.Items)
+            foreach (IndividualExportVisitItem item in visit1.Items)
             {
                 IndividualReportVisitItem vi = new IndividualReportVisitItem()
                 {
@@ -6782,7 +6957,7 @@ namespace KDMApi.Controllers
 
             foreach (IndividualReportVisitItem item in response.Items)
             {
-                if(item.DealId != 0)
+                if (item.DealId != 0)
                 {
                     item.Rms = await GetInternalMembers(item.DealId, rm.Id);
                     item.Cons = await GetInternalMembers(item.DealId, con.Id);
@@ -7259,9 +7434,9 @@ namespace KDMApi.Controllers
             foreach (int id in userIds)
             {
                 IndividualExportProposalItemResponse t = await _crmReportService.GetIndividualExportProposalItems(roleRM, id, fromMonth, toMonth, year, 0, 0, search);
-                foreach(IndividualExportProposalItem item in t.Items)
+                foreach (IndividualExportProposalItem item in t.Items)
                 {
-                    if(r.Items.Where(a => a.ProposalId == item.ProposalId).Count() == 0)
+                    if (r.Items.Where(a => a.ProposalId == item.ProposalId).Count() == 0)
                     {
                         r.Items.Add(item);
                         r.Total++;
@@ -7309,14 +7484,14 @@ namespace KDMApi.Controllers
                             };
 
                 var objs = await query.ToListAsync();
-                foreach(var obj in objs)
+                foreach (var obj in objs)
                 {
                     pi.Rms.Add(new GenericInfo()
                     {
                         Id = obj.UserId,
                         Text = obj.FirstName
                     });
-                    if(pi.Segments.Where(a => a.Text.Equals(obj.Segment)).Count() == 0)
+                    if (pi.Segments.Where(a => a.Text.Equals(obj.Segment)).Count() == 0)
                     {
                         pi.Segments.Add(new GenericInfo()
                         {
@@ -7571,12 +7746,12 @@ namespace KDMApi.Controllers
             List<string> roleRM = new List<string>();
             roleRM.Add("rm");
             List<int> userIds = await _context.CrmRelManagers.Where(a => a.LeaderId == userId && !a.IsDeleted && a.isActive).Select(a => a.UserId).ToListAsync();
-            foreach(int id in userIds)
+            foreach (int id in userIds)
             {
                 IndividualExportProposalItemResponse t = await _crmReportService.GetIndividualExportProposalItems(roleRM, id, fromMonth, toMonth, year, 0, 0, search);
-                foreach(IndividualExportProposalItem item in t.Items)
+                foreach (IndividualExportProposalItem item in t.Items)
                 {
-                    if(r.Items.Where(a => a.ProposalId == item.ProposalId).Count() == 0)
+                    if (r.Items.Where(a => a.ProposalId == item.ProposalId).Count() == 0)
                     {
                         r.Items.Add(item);
                         r.Total++;
@@ -7592,7 +7767,7 @@ namespace KDMApi.Controllers
             CrmDealRole role = GetDealRole("rm");
             foreach (IndividualExportProposalItem i in r.Items)
             {
-               // IndividualExportPICProposalItem pi = new IndividualExportPICProposalItem(i, i.ProposalId);
+                // IndividualExportPICProposalItem pi = new IndividualExportPICProposalItem(i, i.ProposalId);
                 IndividualExportPICProposalItem pi = new IndividualExportPICProposalItem(i, n++);
 
                 var query = from prop in _context.CrmDealProposals
@@ -7611,7 +7786,7 @@ namespace KDMApi.Controllers
                             };
 
                 var objs = await query.ToListAsync();
-                if(objs != null)
+                if (objs != null)
                 {
                     pi.Rms = String.Join(", ", objs.Select(a => a.FirstName).ToList());
 
@@ -7862,7 +8037,7 @@ namespace KDMApi.Controllers
             GenericInfo info = new GenericInfo();
 
             User user = _context.Users.Find(request.UserId);
-            if(user == null)
+            if (user == null)
             {
                 return NotFound(new { error = "User not found." });
             }
@@ -7870,12 +8045,12 @@ namespace KDMApi.Controllers
             int userId = user.ID;
             DateTime now = DateTime.Now;
 
-            if(user.RoleID == 1)
+            if (user.RoleID == 1)
             {
                 // superadmin
                 // Bisa nambah user
                 User curUser = _context.Users.Where(a => a.UserName.Equals(request.Email.Trim())).FirstOrDefault();
-                if(curUser == null)
+                if (curUser == null)
                 {
                     userId = await _userService.AddUser(request.Name, request.Email, request.Phone, "123456", 3);
                     if (userId == 0) return BadRequest(new { error = "Error registering user." });
@@ -7895,7 +8070,7 @@ namespace KDMApi.Controllers
                 _context.Entry(curUser).State = EntityState.Modified;
 
                 CrmRelManager rm = _context.CrmRelManagers.Where(a => a.UserId == curUser.ID && a.isActive && !a.IsDeleted).FirstOrDefault();
-                if(rm == null)
+                if (rm == null)
                 {
                     rm = new CrmRelManager()
                     {
@@ -7943,7 +8118,7 @@ namespace KDMApi.Controllers
                 await _context.SaveChangesAsync();
 
                 CrmRelManager rm = _context.CrmRelManagers.Where(a => a.UserId == user.ID && a.isActive && !a.IsDeleted).FirstOrDefault();
-                if(rm != null)
+                if (rm != null)
                 {
                     info.Id = rm.Id;
                     info.Text = user.FirstName;
@@ -8093,7 +8268,7 @@ namespace KDMApi.Controllers
         public async Task<ActionResult> PutRM(PostRMRequest request)
         {
             User user = _context.Users.Find(request.UserId);
-            if(user == null)
+            if (user == null)
             {
                 return NotFound(new { error = "User not found." });
             }
@@ -8101,13 +8276,13 @@ namespace KDMApi.Controllers
             int userId = user.ID;
             DateTime now = DateTime.Now;
 
-            if(user.RoleID == 1)
+            if (user.RoleID == 1)
             {
                 CrmRelManager rm = _context.CrmRelManagers.Where(a => a.Id == request.Id && a.isActive && !a.IsDeleted).FirstOrDefault();
-                if(rm == null) return NotFound(new { error = "RM not found." });
+                if (rm == null) return NotFound(new { error = "RM not found." });
 
                 User curUser = _context.Users.Find(rm.UserId);
-                if(curUser == null)
+                if (curUser == null)
                 {
                     return NotFound(new { error = "User not found." });
                 }
@@ -8142,7 +8317,7 @@ namespace KDMApi.Controllers
                 await _context.SaveChangesAsync();
             }
 
-            if(!string.IsNullOrEmpty(request.FileBase64))
+            if (!string.IsNullOrEmpty(request.FileBase64))
             {
                 int n = 0;
                 string fileExt = "jpg";
@@ -8311,10 +8486,10 @@ namespace KDMApi.Controllers
             newLeader.LastUpdatedBy = request.UserId;
             _context.Entry(newLeader).State = EntityState.Modified;
 
-            foreach(int m in request.Members)
+            foreach (int m in request.Members)
             {
                 CrmRelManager member = _context.CrmRelManagers.Where(a => a.UserId == m && a.isActive && !a.IsDeleted).FirstOrDefault();
-                if(member != null)
+                if (member != null)
                 {
                     member.LeaderId = newLeader.UserId;
                     member.LastUpdated = now;
@@ -8324,7 +8499,7 @@ namespace KDMApi.Controllers
             }
 
             User user = _context.Users.Find(newLeader.UserId);
-            if(user != null)
+            if (user != null)
             {
                 user.RoleID = 2;            // Chief of tribe
                 _context.Entry(user).State = EntityState.Modified;
@@ -8390,7 +8565,7 @@ namespace KDMApi.Controllers
             CrmRelManager curLeader = _context.CrmRelManagers.Find(request.Id);
             if (curLeader == null) return NotFound(new { error = "Team not found. Please check Id." });
 
-            if(request.LeaderId == 0)
+            if (request.LeaderId == 0)
             {
                 await DeleteTeam(curLeader, now, request.UserId);
                 return curLeader;
@@ -8411,9 +8586,9 @@ namespace KDMApi.Controllers
             _context.Entry(newLeader).State = EntityState.Modified;
 
             List<CrmRelManager> currentMembers = await _context.CrmRelManagers.Where(a => a.LeaderId == newLeader.UserId && a.isActive && !a.IsDeleted).ToListAsync();
-            foreach(CrmRelManager curmember in currentMembers)
+            foreach (CrmRelManager curmember in currentMembers)
             {
-                if(!request.Members.Contains(curmember.UserId))
+                if (!request.Members.Contains(curmember.UserId))
                 {
                     curmember.LeaderId = 0;
                     curmember.LastUpdated = now;
@@ -8423,9 +8598,9 @@ namespace KDMApi.Controllers
             }
             foreach (int m in request.Members)
             {
-                if(m != 0)
+                if (m != 0)
                 {
-                    if(!currentMembers.Where(a => a.UserId == m).Any())
+                    if (!currentMembers.Where(a => a.UserId == m).Any())
                     {
                         CrmRelManager member = _context.CrmRelManagers.Where(a => a.UserId == m && a.isActive && !a.IsDeleted).FirstOrDefault();
                         if (member != null)
@@ -8524,14 +8699,14 @@ namespace KDMApi.Controllers
                 a.UserId
             });
             var objs = await query.ToListAsync();
-            foreach(var obj in objs)
+            foreach (var obj in objs)
             {
                 GenericInfo leader = _context.Users.Where(a => a.ID == obj.UserId).Select(a => new GenericInfo()
                 {
                     Id = a.ID,
                     Text = a.FirstName
                 }).FirstOrDefault();
-                if(leader != null)
+                if (leader != null)
                 {
                     Team nt = new Team();
                     nt.Id = obj.Id;
@@ -8541,14 +8716,14 @@ namespace KDMApi.Controllers
                         Id = leader.Id,
                         Text = leader.Text
                     };
-                    if(obj.LeaderId != 0)
+                    if (obj.LeaderId != 0)
                     {
                         GenericInfo mentor = _context.Users.Where(a => a.ID == obj.LeaderId).Select(a => new GenericInfo()
                         {
                             Id = a.ID,
                             Text = a.FirstName
                         }).FirstOrDefault();
-                        if(mentor != null)
+                        if (mentor != null)
                         {
                             nt.Mentor = new GenericInfo()
                             {
@@ -8639,7 +8814,7 @@ namespace KDMApi.Controllers
             // by TRIBE 
             List<CoreTribe> tribes = await _context.CoreTribes.Where(a => !a.IsDeleted).ToListAsync();
 
-            foreach(CoreTribe tribe in tribes)
+            foreach (CoreTribe tribe in tribes)
             {
                 var query = from proposal in _context.CrmDealProposals
                             join deal in _context.CrmDeals
@@ -8667,7 +8842,7 @@ namespace KDMApi.Controllers
 
                 List<int> propIds = new List<int>();
 
-                foreach(var obj in objs)
+                foreach (var obj in objs)
                 {
                     if (propIds.Contains(obj.Id)) continue;
                     propIds.Add(obj.Id);
@@ -8677,7 +8852,7 @@ namespace KDMApi.Controllers
                              on dealTribe.TribeId equals t.Id
                              where !dealTribe.IsDeleted && !t.IsDeleted && dealTribe.DealId == obj.DealId
                              orderby dealTribe.Percentage descending
-                             select new 
+                             select new
                              {
                                  Id = tribe.Id,
                                  Text = tribe.Shortname.ToUpper(),
@@ -8686,7 +8861,7 @@ namespace KDMApi.Controllers
 
                     var objs2 = await q1.ToListAsync();
                     string curTribe = "";
-                    if(objs2 != null && objs2.Count() >= 1)
+                    if (objs2 != null && objs2.Count() >= 1)
                     {
                         curTribe = objs2[0].Text;
                     }
@@ -8695,17 +8870,17 @@ namespace KDMApi.Controllers
                              join user in _context.Users
                              on member.UserId equals user.ID
                              where !member.IsDeleted && member.DealId == obj.DealId
-                             select new 
+                             select new
                              {
                                  Id = user.ID,
                                  Text = user.FirstName,
                                  Percent = member.Percentage
                              };
                     var obj3 = await q2.ToListAsync();
-                    foreach(var o in obj3)
+                    foreach (var o in obj3)
                     {
                         AchievementItemByTribe item = achievement.Sheet1.Items.Where(a => a.Id == o.Id && a.Tribe.Equals(curTribe)).FirstOrDefault();
-                        if(item == null)
+                        if (item == null)
                         {
                             item = new AchievementItemByTribe()
                             {
@@ -8748,9 +8923,9 @@ namespace KDMApi.Controllers
                     }
                 }
             }
-            
+
             List<VisitByTribe> notribes = await _crmReportService.GetActualVisitsNoTribe(fromMonth, toMonth, year);
-            foreach(VisitByTribe nt in notribes)
+            foreach (VisitByTribe nt in notribes)
             {
                 AchievementItemByTribe item = achievement.Sheet1.Items.Where(a => a.Id == nt.Id && a.Tribe.Equals("OTHERS")).FirstOrDefault();
                 if (item == null)
@@ -8771,7 +8946,7 @@ namespace KDMApi.Controllers
                     item.ActualSalesVisit += nt.Visit;
                 }
             }
-            
+
             achievement.Sheet2 = new AchievementSheet();
             achievement.Sheet2.Title = "Sales Activity Report";
             achievement.Sheet2.Period = period;
@@ -8780,7 +8955,7 @@ namespace KDMApi.Controllers
             foreach (AchievementItemByTribe item in achievement.Sheet1.Items)
             {
                 AchievementItem i = achievement.Sheet2.Items.Where(a => a.Id == item.Id).FirstOrDefault();
-                if(i == null)
+                if (i == null)
                 {
                     i = new AchievementItem()
                     {
@@ -8800,6 +8975,7 @@ namespace KDMApi.Controllers
                     i.ActualSalesVisit += item.ActualSalesVisit;
                 }
             }
+
             achievement.GeneratedDate = DateTime.Now;
 
             return achievement;
@@ -8857,8 +9033,8 @@ namespace KDMApi.Controllers
         {
             List<int> nids = new List<int>();
             if (ids.Trim().Equals("0")) return nids;
-            
-            foreach(string s in ids.Trim().Split(","))
+
+            foreach (string s in ids.Trim().Split(","))
             {
                 try
                 {
@@ -8972,12 +9148,12 @@ return Unauthorized();
 
             data.Title = kpi.Text;
 
-            for(int i = fromMonth; i <= toMonth; i++)
+            for (int i = fromMonth; i <= toMonth; i++)
             {
                 data.Xaxis.Add(new DateTime(year, i, 1).ToString("MMMM", CultureInfo.CreateSpecificCulture("en")));
             }
 
-            if(kpi.Text.Equals("# of Proposals"))
+            if (kpi.Text.Equals("# of Proposals"))
             {
                 data.Series = await GetNProposalSeries(type, id, kpi, fromMonth, toMonth, year);
             }
@@ -9002,7 +9178,7 @@ return Unauthorized();
             string targetSql = GetTargetSql(type, id, kpi, fromMonth, toMonth, year);
             string actualSql = GetActualNProposalSql(type, id, fromMonth, toMonth, year);
 
-            if(targetSql == null || actualSql == null)
+            if (targetSql == null || actualSql == null)
             {
                 return null;
             }
@@ -9228,7 +9404,7 @@ return Unauthorized();
 
             List<AchievementItem> items = await _context.AchievementItems.FromSql(sql).ToListAsync();
 
-            foreach(AchievementItem item in items)
+            foreach (AchievementItem item in items)
             {
                 if (item.TargetNProposal != 0) item.AchNProposal = Convert.ToDouble(item.TargetNProposal) / Convert.ToDouble(item.ActualNProposal) * 100.0d;
                 if (item.TargetProposalValue != 0) item.AchProposalValue = Convert.ToDouble(item.TargetProposalValue) / Convert.ToDouble(item.ActualProposalValue) * 100.0d;
@@ -9388,7 +9564,7 @@ return Unauthorized();
             if (type.Equals("tribe"))
             {
                 string whereId = "";                        // For all tribes, when id == 0
-                if(id != 0) whereId = "AND dealTribe.TribeId =" + id.ToString();
+                if (id != 0) whereId = "AND dealTribe.TribeId =" + id.ToString();
 
                 return string.Join(" ", new[]
                 {
@@ -9402,7 +9578,7 @@ return Unauthorized();
                     "ON dealTribe.DealId = deal.Id",
                     "WHERE per.Month >=", fromMonth.ToString(), "AND per.Month <=", toMonth.ToString(), "AND per.Year = ", year.ToString(), whereId,
                     "GROUP BY dealTribe.TribeId, per.Month"
-                });;
+                }); ;
             }
             else if (type.Equals("branch"))
             {
@@ -9455,10 +9631,10 @@ return Unauthorized();
         }
         private string GetActualNProposalSql(string type, int id, int fromMonth, int toMonth, int year)
         {
-            if(type.Equals("tribe"))
+            if (type.Equals("tribe"))
             {
                 string whereId = "";            /// for all tribes, when id == 0
-                if(id != 0) whereId = "AND dealTribe.TribeId =" + id.ToString();
+                if (id != 0) whereId = "AND dealTribe.TribeId =" + id.ToString();
 
                 return string.Join(" ", new[]
                 {
@@ -9530,15 +9706,15 @@ return Unauthorized();
         {
             string table = "";
             string whereId = "";
-            
-            if(id == 0)
+
+            if (id == 0)
             {
                 // All.
                 // Target dihitung berdasarkan total target RM
                 table = "dbo.Users";
                 whereId = "";
             }
-            if(type.Trim().Equals("tribe"))
+            if (type.Trim().Equals("tribe"))
             {
                 table = "dbo.CoreTribes";
                 whereId = "AND u.Id = " + id.ToString();
@@ -9616,7 +9792,7 @@ return Unauthorized();
         }
         private string GetTribeInvoiceSql(string field, int year, int fromMonth, int toMonth)
         {
-            if(year >= 2020)
+            if (year >= 2020)
             {
                 /*
                 return string.Join(" ", new[] {
@@ -9874,10 +10050,10 @@ return Unauthorized();
             List<int> propIds = await query.Distinct().ToListAsync();
 
             var query1 = from prop in _context.CrmDealProposals
-                        join deal in _context.CrmDeals on prop.DealId equals deal.Id
-                        join member in _context.CrmDealInternalMembers on deal.Id equals member.DealId
-                        where propIds.Contains(prop.Id)
-                        select Convert.ToInt64(prop.ProposalValue * (Convert.ToDouble(member.Percentage) / 100d));
+                         join deal in _context.CrmDeals on prop.DealId equals deal.Id
+                         join member in _context.CrmDealInternalMembers on deal.Id equals member.DealId
+                         where propIds.Contains(prop.Id)
+                         select Convert.ToInt64(prop.ProposalValue * (Convert.ToDouble(member.Percentage) / 100d));
             return query1.Sum();
         }
         private int GetIndividualSummaryVisit(int userId, int fromMonth, int toMonth, int year, List<int> tribeIds)
@@ -9910,12 +10086,12 @@ return Unauthorized();
         private long GetIndividualSummarySalesOnePeriod(int userId, int fromMonth, int toMonth, int year)
         {
             var query = from userInvoice in _context.CrmDealUserInvoices
-                         join invoice in _context.CrmDealInvoices
-                         on userInvoice.InvoiceId equals invoice.Id
-                         join p in _context.CrmPeriods
-                         on invoice.PeriodId equals p.Id
-                         where userInvoice.UserId == userId && p.Month >= fromMonth && p.Month <= toMonth && p.Year == year && !invoice.IsDeleted && !invoice.IsToBe
-                         select userInvoice.Amount;
+                        join invoice in _context.CrmDealInvoices
+                        on userInvoice.InvoiceId equals invoice.Id
+                        join p in _context.CrmPeriods
+                        on invoice.PeriodId equals p.Id
+                        where userInvoice.UserId == userId && p.Month >= fromMonth && p.Month <= toMonth && p.Year == year && !invoice.IsDeleted && !invoice.IsToBe
+                        select userInvoice.Amount;
 
             return query.Sum();
         }
@@ -9925,8 +10101,8 @@ return Unauthorized();
         {
             IndividualExportProposal cur = await _crmReportService.GetListProposalByUserId("rm", userId, 1, 12, year, 0, 0, "*");
             IndividualExportProposal last = await _crmReportService.GetListProposalByUserId("rm", userId, 1, 12, year - 1, 0, 0, "*");
-//            IndividualExportProposal cur = await _crmReportService.GetListProposalByUserId(userId, 1, DateTime.Now.Month, year, 0, 0, "*"); 
-  //          IndividualExportProposal last = await _crmReportService.GetListProposalByUserId(userId, 1, DateTime.Now.Month, year - 1, 0, 0, "*");
+            //            IndividualExportProposal cur = await _crmReportService.GetListProposalByUserId(userId, 1, DateTime.Now.Month, year, 0, 0, "*"); 
+            //          IndividualExportProposal last = await _crmReportService.GetListProposalByUserId(userId, 1, DateTime.Now.Month, year - 1, 0, 0, "*");
 
             DoubleLong response = new DoubleLong();
 
@@ -9995,25 +10171,25 @@ return Unauthorized();
         {
             // Muter dulu karena ada bug di post visit
             var query1 = from visitUser in _context.CrmDealVisitUsers
-                    join visit in _context.CrmDealVisits
-                    on visitUser.VisitId equals visit.Id
-                    join deal in _context.CrmDeals
-                    on visit.DealId equals deal.Id
-                    join client in _context.CrmClients
-                    on deal.ClientId equals client.Id
-                    join period in _context.CrmPeriods
-                    on visit.PeriodId equals period.Id
-                    where visitUser.Userid == userId && !visit.IsDeleted && period.Year == year
-                    select new IndividualReportVisitItem()
-                    {
-                        VisitId = visit.Id,
-                        Company = client.Company,
-                        VisitDate = visit.VisitFromTime,
-                        Location = visit.Location,
-                        Objective = visit.Objective,
-                        NextStep = visit.NextStep,
-                        Remarks = visit.Remark
-                    };
+                         join visit in _context.CrmDealVisits
+                         on visitUser.VisitId equals visit.Id
+                         join deal in _context.CrmDeals
+                         on visit.DealId equals deal.Id
+                         join client in _context.CrmClients
+                         on deal.ClientId equals client.Id
+                         join period in _context.CrmPeriods
+                         on visit.PeriodId equals period.Id
+                         where visitUser.Userid == userId && !visit.IsDeleted && period.Year == year
+                         select new IndividualReportVisitItem()
+                         {
+                             VisitId = visit.Id,
+                             Company = client.Company,
+                             VisitDate = visit.VisitFromTime,
+                             Location = visit.Location,
+                             Objective = visit.Objective,
+                             NextStep = visit.NextStep,
+                             Remarks = visit.Remark
+                         };
             /*var query = from visitUser in _context.CrmDealVisitUsers
                         join visit in _context.CrmDealVisits
                         on visitUser.VisitId equals visit.Id
@@ -10099,13 +10275,13 @@ return Unauthorized();
 
             DoubleLong response = new DoubleLong();
 
-            foreach(SummaryReportRow row in rows)
+            foreach (SummaryReportRow row in rows)
             {
                 response.Amount1 += row.Amount1;
                 response.Amount1 += row.Amount2;
             }
 
-            if((curYear - 1) < 2020)
+            if ((curYear - 1) < 2020)
             {
                 var query = from history in _context.CrmTribeSalesHistories
                             join per in _context.CrmPeriods
@@ -10153,10 +10329,10 @@ return Unauthorized();
             else
             {
                 var q2 = from invoice in _context.CrmDealInvoices
-                        join per in _context.CrmPeriods
-                        on invoice.PeriodId equals per.Id
-                        where per.Month == curMonth && per.Year == (curYear - 1) && !invoice.IsDeleted && !invoice.IsToBe
-                        select invoice.Amount;
+                         join per in _context.CrmPeriods
+                         on invoice.PeriodId equals per.Id
+                         where per.Month == curMonth && per.Year == (curYear - 1) && !invoice.IsDeleted && !invoice.IsToBe
+                         select invoice.Amount;
 
                 List<long> c = q2.ToList();
                 response.Amount2 = c.Sum();
@@ -10237,9 +10413,9 @@ return Unauthorized();
             List<DoubleLong> ds = _context.GetDoubleLongs.FromSql(sql1).ToList();
 
             DoubleLong response = new DoubleLong();
-            foreach(DoubleLong d in ds)
+            foreach (DoubleLong d in ds)
             {
-                if(d.Amount1 == -1)
+                if (d.Amount1 == -1)
                 {
                     response.Amount2 = d.Amount2;
                 }
@@ -10448,7 +10624,7 @@ return Unauthorized();
                         PercentTribeInfo inList = tribes.Find(a => a.TribeId == curTribe.TribeId);
                         if (inList != null)
                         {
-                            if(inList.UsePercent)
+                            if (inList.UsePercent)
                             {
                                 curTribe.Percentage = inList.Percent;
                                 curTribe.Amount = Convert.ToInt64(Math.Round(Convert.ToSingle(invAmount) * Convert.ToSingle(Convert.ToSingle(inList.Percent) / Convert.ToSingle(100))));
@@ -10475,7 +10651,7 @@ return Unauthorized();
                     long a = 0;
                     double p = 0.0d;
 
-                    if(tribe.UsePercent)
+                    if (tribe.UsePercent)
                     {
                         p = tribe.Percent;
                         a = Convert.ToInt64(Math.Round(Convert.ToSingle(invAmount) * Convert.ToSingle(Convert.ToSingle(tribe.Percent) / Convert.ToSingle(100))));
@@ -10670,7 +10846,7 @@ return Unauthorized();
                     try
                     {
                         CrmDealHistory rec = _context.CrmDealHistories.Find(history.Id);
-                        if(rec != null)
+                        if (rec != null)
                         {
                             item.Data.Info = new
                             {
@@ -10685,10 +10861,10 @@ return Unauthorized();
                         return null;
                     }
                 }
-                else if(item.Type.Equals("tobedate"))
+                else if (item.Type.Equals("tobedate"))
                 {
                     CrmDealHistory rec = _context.CrmDealHistories.Find(history.Id);
-                    if(rec != null)
+                    if (rec != null)
                     {
                         item.Data.Info = new
                         {
@@ -10696,7 +10872,7 @@ return Unauthorized();
                         };
                     }
                 }
-                else if(item.Type.Equals("tobeamount"))
+                else if (item.Type.Equals("tobeamount"))
                 {
                     CrmDealHistory rec = _context.CrmDealHistories.Find(history.Id);
                     if (rec != null)
@@ -10708,12 +10884,12 @@ return Unauthorized();
                         };
                     }
                 }
-                else if(item.Type.Equals("invoiced"))
+                else if (item.Type.Equals("invoiced"))
                 {
                     try
                     {
                         CrmDealHistory rec = _context.CrmDealHistories.Find(history.Id);
-                        if(rec != null)
+                        if (rec != null)
                         {
                             CrmContact contact = _context.CrmContacts.Find(rec.ReservedId);
                             string nm = "";
@@ -10744,7 +10920,7 @@ return Unauthorized();
                         return null;
                     }
                 }
-                
+
                 items.Add(item);
             }
             return items;
@@ -11008,7 +11184,7 @@ return Unauthorized();
             }
 
             CrmDealHistory item = _context.CrmDealHistories.Where(a => a.DealId == dealId && a.TypeId == type.Id && a.CurData.Equals(curData)).FirstOrDefault();
-            if(item == null)
+            if (item == null)
             {
                 return null;
             }
@@ -11346,7 +11522,7 @@ return Unauthorized();
                 var q4 = from vt in _context.CrmDealVisitTribes
                          join tribe in _context.CoreTribes
                          on vt.TribeId equals tribe.Id
-                         where vt.VisitId == visitId 
+                         where vt.VisitId == visitId
                          select new GenericInfo()
                          {
                              Id = tribe.Id,
@@ -11561,7 +11737,7 @@ return Unauthorized();
             List<CrmDealInvoice> invoices = q.ToList();
             _context.CrmDealInvoices.AddRange(invoices);
 
-            foreach(CrmDealInvoice inv in invoices)
+            foreach (CrmDealInvoice inv in invoices)
             {
                 string prevData = inv.InvoiceDate.ToString("DD MMM YYYY", CultureInfo.CreateSpecificCulture("en"));
                 _ = await AddDealHistory("tobe", deal.Id, prevData, inv.Id.ToString(), inv.InvoiceDate, userId, now, userId, "To Be Invoiced", "", "", 0, 0, 0, inv.Remarks, inv.Amount);
@@ -11675,10 +11851,10 @@ return Unauthorized();
         {
             List<GenericInfo> managers = new List<GenericInfo>();
 
-            foreach(PercentTribeResponse rm in rms)
+            foreach (PercentTribeResponse rm in rms)
             {
                 GenericInfo manager = GetManager(rm.Id);
-                if(manager != null)
+                if (manager != null)
                 {
                     if (!managers.Any(a => a.Id == manager.Id))
                     {
@@ -11689,7 +11865,7 @@ return Unauthorized();
 
             List<GenericInfo> adds = new List<GenericInfo>();
 
-            foreach(GenericInfo man in managers)
+            foreach (GenericInfo man in managers)
             {
                 GenericInfo manager = GetManager(man.Id);
                 if (manager != null)
@@ -11701,7 +11877,7 @@ return Unauthorized();
                 }
             }
 
-            foreach(GenericInfo a in adds)
+            foreach (GenericInfo a in adds)
             {
                 managers.Add(a);
             }
@@ -11732,7 +11908,7 @@ return Unauthorized();
         private GenericInfo GetInternalMember(int dealId, String role)
         {
             CrmDealRole dealRole = GetDealRole(role);
-            if(dealRole != null)
+            if (dealRole != null)
             {
                 var query = from member in _context.CrmDealInternalMembers
                             join user in _context.Users
@@ -11795,10 +11971,10 @@ return Unauthorized();
             if (type == null) return null;
 
             CrmDealHistory history = _context.CrmDealHistories.Where(a => a.CurData.Equals(invoiceId.ToString()) && a.TypeId == type.Id).FirstOrDefault();
-            if(history != null && history.ReservedId > 0)
+            if (history != null && history.ReservedId > 0)
             {
                 CrmContact contact = _context.CrmContacts.Find(history.ReservedId);
-                if(contact != null)
+                if (contact != null)
                 {
                     return new GenericInfo()
                     {
@@ -11837,7 +12013,7 @@ return Unauthorized();
                 }
                 else if (curPic != null && curPic.UserId != picId)
                 {
-                    if(picId == 0)
+                    if (picId == 0)
                     {
                         // Remove
                         _context.CrmDealInternalMembers.Remove(curPic);
@@ -11871,7 +12047,7 @@ return Unauthorized();
         private string JoinStrings(List<string> strs)
         {
             string s = "";
-            foreach(string str in strs)
+            foreach (string str in strs)
             {
                 s += "<p>" + str + "</p>";
             }
@@ -11894,11 +12070,11 @@ return Unauthorized();
             {
                 subject = "Penambahan To Be Invoiced";
             }
-            else if(emailToSend == EMAIL_EDIT_TO_BE_INVOICED)
+            else if (emailToSend == EMAIL_EDIT_TO_BE_INVOICED)
             {
                 subject = "Perubahan To Be Invoiced";
             }
-            else if(emailToSend == EMAIL_DELETE_TO_BE_INVOICED)
+            else if (emailToSend == EMAIL_DELETE_TO_BE_INVOICED)
             {
                 subject = "To Be Invoiced Dihapus";
             }
@@ -11928,7 +12104,7 @@ return Unauthorized();
             senders.Add(new EmailAddress()
             {
                 Name = "Web Admin",
-                Address = "cs@gmlperformance.co.id"
+                Address = "admin1@gmlperformance.co.id"
             });
 
             message.FromAddresses = senders;
@@ -11940,6 +12116,7 @@ return Unauthorized();
             _emailService.Send(message);
 
         }
+
         private DateTime? GetStatusDate(int dealId)
         {
             CrmDealStatus status = _context.CrmDealStatuses.Where(a => a.DealId == dealId && !a.IsDeleted).OrderByDescending(a => a.LastUpdated).FirstOrDefault();
@@ -12120,7 +12297,7 @@ return Unauthorized();
         {
             var query = from s in _context.CrmDealStatuses
                         join u in _context.Users on s.LastUpdatedBy equals u.ID
-                        where s.DealId == dealId && !s.IsDeleted 
+                        where s.DealId == dealId && !s.IsDeleted
                         orderby s.LastUpdated descending
                         select new StatusListItem()
                         {
@@ -12132,6 +12309,7 @@ return Unauthorized();
                         };
             return await query.ToListAsync();
         }
+
 
     }
 }

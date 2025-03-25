@@ -18,6 +18,7 @@ namespace KDMApi.Models.Pipeline
         public DateTime SentDate { get; set; }
         public long ProposalValue { get; set; }
         public string Filename { get; set; }
+        public DateTime LastUpdated { get; set; }
     }
 
     public class IndividualExportProposalItemResponse

@@ -5,6 +5,7 @@ using KDMApi.Models.Pipeline;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -29,6 +30,15 @@ namespace KDMApi.Services
             return query.Sum();
         }
 
+        public long GetActualSalesByUserIdByDate(int userId, DateTime fromDate, DateTime toDate)
+        {
+            var query = from userInvoice in _context.CrmDealUserInvoices
+                        join invoice in _context.CrmDealInvoices on userInvoice.InvoiceId equals invoice.Id
+                        where userInvoice.UserId == userId && invoice.InvoiceDate >= fromDate && invoice.InvoiceDate <= toDate && !invoice.IsDeleted
+                        select userInvoice.Amount;
+            return query.Sum();
+        }
+
         public async Task<long> GetActualSalesByUserIdFilterTribe(int userId, int fromMonth, int toMonth, int year, List<int> tribeIds)
         {
             if (tribeIds == null || tribeIds.Count() == 0) return GetActualSalesByUserId(userId, fromMonth, toMonth, year);
@@ -44,7 +54,32 @@ namespace KDMApi.Services
                         };
             var objs = await query.ToListAsync();
             long total = 0;
-            foreach(var obj in objs)
+            foreach (var obj in objs)
+            {
+                var q = from invoice in _context.CrmDealTribeInvoices
+                        where invoice.InvoiceId == obj.Id && tribeIds.Contains(invoice.TribeId)
+                        select invoice.Id;
+                if (q.Count() > 0) total += obj.Amount;
+            }
+
+            return total;
+        }
+
+        public async Task<long> GetActualSalesByUserIdFilterTribeByDate(int userId, DateTime fromDate, DateTime toDate, List<int> tribeIds)
+        {
+            if (tribeIds == null || tribeIds.Count() == 0) return GetActualSalesByUserIdByDate(userId, fromDate, toDate);
+
+            var query = from userInvoice in _context.CrmDealUserInvoices
+                        join invoice in _context.CrmDealInvoices on userInvoice.InvoiceId equals invoice.Id
+                        where userInvoice.UserId == userId && invoice.InvoiceDate >= fromDate && invoice.InvoiceDate <= toDate && !invoice.IsDeleted
+                        select new
+                        {
+                            invoice.Id,
+                            userInvoice.Amount
+                        };
+            var objs = await query.ToListAsync();
+            long total = 0;
+            foreach (var obj in objs)
             {
                 var q = from invoice in _context.CrmDealTribeInvoices
                         where invoice.InvoiceId == obj.Id && tribeIds.Contains(invoice.TribeId)
@@ -100,7 +135,7 @@ namespace KDMApi.Services
                           "FROM CrmDealVisits as visit " +
                           "join CrmDealVisitUsers as vu on visit.Id = vu.VisitId " +
                           "join Users as u on vu.Userid = u.Id " +
-                          "full outer join CrmDealVisitTribes as vt on visit.Id = vt.VisitId " + 
+                          "full outer join CrmDealVisitTribes as vt on visit.Id = vt.VisitId " +
                           "where VisitFromtime >= '" + fromDate.ToString("yyyy-MM-dd") + "' and VisitToTime < '" + toDate.ToString("yyyy-MM-dd") + "' and vt.TribeId IS NULL " +
                           " and vu.IsRm = 1 and vu.IsConsultant = 0 " +
                           "group by u.Id, u.FirstName, vt.TribeId";
@@ -115,6 +150,94 @@ namespace KDMApi.Services
             roles.Add(role);
             return await GetListProposalByUserIdRoles(roles, userId, fromMonth, toMonth, year, page, perPage, search);
         }
+
+        public async Task<IndividualExportProposalItemResponse> GetIndividualExportProposalItemsByDate(List<string> roles, int userId, DateTime fr, DateTime to, int page, int perPage, string search)
+        {
+            IndividualExportProposalItemResponse response = new IndividualExportProposalItemResponse();
+            List<int> rmIds = await _context.CrmDealRoles.Where(a => roles.Contains(a.Shortname)).Select(a => a.Id).ToListAsync();
+
+            IQueryable<IndividualExportProposalItem> query;
+
+            if (search.Equals("*"))
+            {
+                query = from proposal in _context.CrmDealProposals
+                        join deal in _context.CrmDeals
+                        on proposal.DealId equals deal.Id
+                        join cl in _context.CrmClients
+                        on deal.ClientId equals cl.Id
+                        join t in _context.CrmDealProposalTypes
+                        on proposal.TypeId equals t.Id
+                        join u in _context.Users
+                        on proposal.SentById equals u.ID
+                        join member in _context.CrmDealInternalMembers
+                        on deal.Id equals member.DealId
+                        where member.UserId == userId && rmIds.Contains(member.RoleId) && proposal.SentDate >= fr && proposal.SentDate <= to
+                        && !proposal.IsDeleted && !deal.IsDeleted
+                        orderby proposal.SentDate
+                        select new IndividualExportProposalItem()
+                        {
+                            No = 0,
+                            ProposalId = proposal.Id,
+                            ProposalValue = Convert.ToInt64(Math.Round(member.Percentage * proposal.ProposalValue / 100)),
+                            Name = deal.Name,
+                            Client = cl.Company,
+                            Type = t.Name,
+                            SentBy = u.FirstName,
+                            SentDate = proposal.SentDate,
+                            SentById = proposal.SentById,
+                            Filename = proposal.OriginalFilename,
+                            LastUpdated = proposal.LastUpdated
+                        };
+
+            }
+            else
+            {
+                query = from proposal in _context.CrmDealProposals
+                        join deal in _context.CrmDeals
+                        on proposal.DealId equals deal.Id
+                        join cl in _context.CrmClients
+                        on deal.ClientId equals cl.Id
+                        join t in _context.CrmDealProposalTypes
+                        on proposal.TypeId equals t.Id
+                        join u in _context.Users
+                        on proposal.SentById equals u.ID
+                        join member in _context.CrmDealInternalMembers
+                        on deal.Id equals member.DealId
+                        where member.UserId == userId && rmIds.Contains(member.RoleId) && deal.Name.Contains(search) && proposal.SentDate >= fr && proposal.SentDate <= to
+                        && !proposal.IsDeleted && !deal.IsDeleted
+                        orderby proposal.SentDate
+                        select new IndividualExportProposalItem()
+                        {
+                            No = 0,
+                            ProposalId = proposal.Id,
+                            ProposalValue = Convert.ToInt64(Math.Round(member.Percentage * proposal.ProposalValue / 100)),
+                            Name = deal.Name,
+                            Client = cl.Company,
+                            Type = t.Name,
+                            SentBy = u.FirstName,
+                            SentDate = proposal.SentDate,
+                            SentById = proposal.SentById,
+                            Filename = proposal.OriginalFilename,
+                            LastUpdated = proposal.LastUpdated
+                        };
+
+            }
+
+
+            response.Total = query.Distinct().Count();
+
+            if (page != 0 && perPage != 0)
+            {
+                response.Items = await query.Distinct().Skip(perPage * (page - 1)).Take(perPage).ToListAsync();
+            }
+            else
+            {
+                response.Items = await query.Distinct().ToListAsync();
+            }
+
+            return response;
+        }
+
 
         public async Task<IndividualExportProposalItemResponse> GetIndividualExportProposalItems(List<string> roles, int userId, int fromMonth, int toMonth, int year, int page, int perPage, string search)
         {
@@ -152,7 +275,8 @@ namespace KDMApi.Services
                             SentBy = u.FirstName,
                             SentDate = proposal.SentDate,
                             SentById = proposal.SentById,
-                            Filename = proposal.OriginalFilename
+                            Filename = proposal.OriginalFilename,
+                            LastUpdated = proposal.LastUpdated
                         };
 
             }
@@ -185,7 +309,8 @@ namespace KDMApi.Services
                             SentBy = u.FirstName,
                             SentDate = proposal.SentDate,
                             SentById = proposal.SentById,
-                            Filename = proposal.OriginalFilename
+                            Filename = proposal.OriginalFilename,
+                            LastUpdated = proposal.LastUpdated
                         };
 
             }
@@ -218,7 +343,7 @@ namespace KDMApi.Services
                 response.Items.Add(item);
             }
 
-            response.Headers = new List<string>(new string[] { "No.", "Proposal name", "Client", "Deal type", "Sent by", "Delivery date", "Proposal value" });
+            response.Headers = new List<string>(new string[] { "No.", "Proposal name", "Client", "Deal type", "Sent by", "Delivery date", "Proposal value", "LastUpdated" });
             response.Info = new PaginationInfo(page, perPage, r.Total);
 
             return response;
@@ -235,13 +360,17 @@ namespace KDMApi.Services
                 nextMonth = 1;
             }
             DateTime toDate = new DateTime(nextYear, nextMonth, 1);
+            return await GetListActualVisitsByUserIdByDate(userId, fromDate, toDate, page, perPage, search);
+        }
 
+        public async Task<IndividualExportVisit> GetListActualVisitsByUserIdByDate(int userId, DateTime fromDate, DateTime toDate, int page, int perPage, string search)
+        {
             string searchStr = "";
-            if(!string.IsNullOrEmpty(search) && !search.Equals("*"))
+            if (!string.IsNullOrEmpty(search) && !search.Equals("*"))
             {
                 searchStr = " and client.Company like '%" + search + "%' ";
             }
-            string sql = "SELECT 1 as No, visit.Id as VisitId, visit.DealId, client.Id as ClientId, client.Company, visit.VisitFromTime as VisitDate, visit.Location, visit.Objective, visit.NextStep, visit.Remark as Remarks " +
+            string sql = "SELECT 1 as No, visit.Id as VisitId, visit.DealId, client.Id as ClientId, client.Company, visit.VisitFromTime as VisitDate, visit.Location, visit.Objective, visit.NextStep, visit.Remark as Remarks, visit.LastUpdated " +
                           "FROM CrmDealVisits as visit " +
                           "join CrmDealVisitUsers as vu on visit.Id = vu.VisitId " +
                           "join CrmClients as client on visit.ClientId = client.Id " +
@@ -251,9 +380,10 @@ namespace KDMApi.Services
 
             List<IndividualExportVisitItem> items = await _context.IndividualExportVisitItems.FromSql(sql).ToListAsync();
 
-            if(string.IsNullOrEmpty(search) || search.Equals("*")) {
+            if (string.IsNullOrEmpty(search) || search.Equals("*"))
+            {
                 // Kadang-kadang visit ngga ada klien nya!
-                string sql1 = "SELECT 1 as No, visit.Id as VisitId, visit.DealId, 0 as ClientId, '' as Company, visit.VisitFromTime as VisitDate, visit.Location, visit.Objective, visit.NextStep, visit.Remark as Remarks " +
+                string sql1 = "SELECT 1 as No, visit.Id as VisitId, visit.DealId, 0 as ClientId, '' as Company, visit.VisitFromTime as VisitDate, visit.Location, visit.Objective, visit.NextStep, visit.Remark as Remarks, visit.LastUpdated " +
                               "FROM CrmDealVisits as visit " +
                               "join CrmDealVisitUsers as vu on visit.Id = vu.VisitId " +
                               "where visit.ClientId = 0 and visit.VisitFromTime >= '" + fromDate.ToString("yyyy-MM-dd") + "' and visit.VisitToTime < '" + toDate.ToString("yyyy-MM-dd") + "' and vu.UserId = " + userId.ToString() +
@@ -266,7 +396,7 @@ namespace KDMApi.Services
 
             int total = items.Count();
 
-            if(page != 0 && perPage != 0)
+            if (page != 0 && perPage != 0)
             {
                 items = items.Skip(perPage * (page - 1)).Take(perPage).ToList();
             }
@@ -277,7 +407,7 @@ namespace KDMApi.Services
             }
 
             IndividualExportVisit response = new IndividualExportVisit();
-            response.Headers = new List<string>(new string[] { "No", "Company", "Visit date", "Location", "Visit objective", "Next step", "Remarks" });
+            response.Headers = new List<string>(new string[] { "No", "Company", "Visit date", "Location", "Visit objective", "Next step", "Remarks", "LastUpdated" });
             response.Items = items;
             response.Info = new PaginationInfo(page, perPage, total);
 
