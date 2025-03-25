@@ -17,5 +17,6 @@ namespace KDMApi.Models.Pipeline
         public string Objective { get; set; }
         public string NextStep { get; set; }
         public string Remarks { get; set; }
+        public DateTime LastUpdated { get; set; }
     }
 }
