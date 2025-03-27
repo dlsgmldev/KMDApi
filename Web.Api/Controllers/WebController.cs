@@ -123,7 +123,7 @@ namespace KDMApi.Controllers
                         recipients.Add(new EmailAddress()
                         {
                             Name = "CS GML Performance Consulting",
-                            Address = "admin@gmlperformance.co.id"
+                            Address = "cs@gmlperformance.co.id"
                         });
                     //    recipients.Add(new EmailAddress()
                     //    {
@@ -422,7 +422,7 @@ namespace KDMApi.Controllers
             {
                 Name = "Web Admin",
                 //Address = "admin1@gmlperformance.co.id"
-                Address = "admin@gmlperformance.co.id"
+                Address = "cs@gmlperformance.co.id"
             });
 
             List<EmailAddress> recipients = new List<EmailAddress>();

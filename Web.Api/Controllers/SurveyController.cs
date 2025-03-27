@@ -5662,7 +5662,7 @@ and item.ItemTextId like 'Nama'
                 senders.Add(new EmailAddress()
                 {
                     Name = "Web Admin",
-                    Address = "admin1@gmlperformance.co.id"
+                    Address = "cs@gmlperformance.co.id"
                 });
 
                 List<EmailAddress> recipients = new List<EmailAddress>();
@@ -5740,7 +5740,7 @@ and item.ItemTextId like 'Nama'
                 senders.Add(new EmailAddress()
                 {
                     Name = "Web Admin",
-                    Address = "admin1@gmlperformance.co.id"
+                    Address = "cs@gmlperformance.co.id"
                 });
 
                 List<EmailAddress> recipients = new List<EmailAddress>();
