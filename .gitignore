@@ -5,7 +5,7 @@
 
 
 # Configuration files
-Web.api/appsettings.*
+Web.Api/appsettings.*
 
 # User-specific files
 *.rsuser
